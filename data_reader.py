@@ -5,9 +5,6 @@ import csv
 
 
 # reads data from file, transforms and saves to csv file - merges all helper methods into one
-from ctypes import Union
-
-
 def process_data_and_write_to_csv():
     raw_data = read_data()
     data = []
@@ -22,14 +19,11 @@ def process_data_and_write_to_csv():
 
     print('Amount of lines after deleting lines with bad format: ' + str(len(data)))
 
-    a = transform_data_to_dict(data)
-    b = remove_to_wide_or_to_specific_genres(a)
-    c = remove_books_with_too_many_genres(b)
-    d = transform_temporary_dictionary_to_target_dictionary(c)
-    save_data_to_csv(d)
-
-    # for key in data.keys():
-    #     print("\t" + str(key) + " " + str(data[key]))
+    data = transform_data_to_dict(data)
+    data = remove_to_wide_or_to_specific_genres(data)
+    data = remove_books_with_too_many_genres(data)
+    data = transform_temporary_dictionary_to_target_dictionary(data)
+    save_data_to_csv(data)
 
     print('Amount of lines after cleaning: ' + str(len(data)))
 
@@ -69,11 +63,12 @@ def transform_data_to_dict(data: list[str]) -> dict[int, dict[str, list[str]]]:
         line[6] = line[6].strip()
 
         # delete elements that doesnt have Wiki ID, title, genres, summary or have bad content
-        if line[0] != '' and line[2] != '' and line[5] != '' and line[6] != '' and line[6] != 'To be added.' and\
-                line[6].count('=') == 0 and line[6].count("\\") == 0 and line[6].count('/') == 0 and \
-                line[6].count('<!') == 0 and line[6].count('<') == 0 and line[6].count('&nbsp') == 0 and \
-                line[6].count('&mdash') == 0 and line[6].count('&ndash') == 0 and line[6].count('&#') == 0 and \
-                line[6].count('http') == 0:
+        if line[0] != '' and line[2] != '' and line[5] != '' and line[6] != '' and \
+                line[6].count('To be added.') == 0 and line[6].count('=') == 0 and line[6].count("\\") == 0 and \
+                line[6].count('/') == 0 and line[6].count('<!') == 0 and line[6].count('<') == 0 and \
+                line[6].count('&nbsp') == 0 and line[6].count('&mdash') == 0 and line[6].count('&ndash') == 0 and \
+                line[6].count('&#') == 0 and line[6].count('http') == 0 and \
+                line[6].count('Plot outline description') == 0:
 
             nested_dict = {'title': [line[2]],
                            'summary': [line[6]],
