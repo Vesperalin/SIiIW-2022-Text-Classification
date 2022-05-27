@@ -25,7 +25,7 @@ def process_data_and_write_to_csv():
     data = transform_temporary_dictionary_to_target_dictionary(data)
     save_data_to_csv(data)
 
-    print('Amount of lines after cleaning: ' + str(len(data)))
+    print('Amount of lines after cleaning and choosing genres: ' + str(len(data)))
 
 
 # reads data from file and returns as list of lines - strings
@@ -49,7 +49,7 @@ def utf_16_encoding_to_8_fix(data: str) -> str:
     return ''.join(data)
 
 
-# transforms data to dict where: key - Wiki ID, value - dict with: title, genres and summary
+# transforms data to dict where: key - Wiki ID, value - dict with: title, genres(list) and summary
 def transform_data_to_dict(data: list[str]) -> dict[int, dict[str, list[str]]]:
     temporary_data = {}
     for line in data:
@@ -110,7 +110,7 @@ def remove_to_wide_or_to_specific_genres(temp_dict: dict[int, dict[str, list[str
     return temp_dict
 
 
-# Remove books that have more than one genre from the dictionary
+# remove books that have more than one genre from the dictionary
 def remove_books_with_too_many_genres(temp_dict: dict[int, dict[str, list[str]]]) -> dict[int, dict[str, list[str]]]:
     genres_count = count_genres(temp_dict)
     tmp = deepcopy(temp_dict)
@@ -122,12 +122,11 @@ def remove_books_with_too_many_genres(temp_dict: dict[int, dict[str, list[str]]]
         if len(list(intersection)) > 1:
             temp_dict.pop(key)
 
-    # TODO - zapytać Jakubika czy ok, a jak nie to czy sb można wyjebać, żeby były podobne liczby
-    # counts = count_genres(temp_dict)
-    # sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-    # print("Genre list with counts: ")
-    # for item in sorted_counts:
-    #     print("\t" + item[0] + " " + str(item[1]))
+    counts = count_genres(temp_dict)
+    sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    print("Genre list with counts: ")
+    for item in sorted_counts:
+        print("\t" + item[0] + " " + str(item[1]))
 
     return temp_dict
 
@@ -157,7 +156,7 @@ def save_data_to_csv(data: dict[int, dict[str, str]]):
 
 
 # reads cleaned data from csv and saves to dictionary
-def read_data_from_csv() -> dict[int, dict[str, str]]:
+def read_data_from_csv_to_dict() -> dict[int, dict[str, str]]:
     df = pd.read_csv('cleaned_data.csv', header=None)
     data = {}
 

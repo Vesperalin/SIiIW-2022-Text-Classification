@@ -1,21 +1,32 @@
+from data_reader import read_data, utf_16_encoding_to_8_fix, transform_data_to_dict, \
+    remove_to_wide_or_to_specific_genres
+
+
 # analyzes data
 def analyze_data(data: dict[int, dict[str, str]]):
+    # count genres occurrences among books
     genres_count = count_genres(data)
     sorted_counts = sorted(genres_count.items(), key=lambda x: x[1], reverse=True)
     print("Genre list with counts: ")
     for item in sorted_counts:
         print("\t" + item[0] + " " + str(item[1]))
 
-    print('Avg amount of letters in summary: ' + str(calculate_avg_summary_length_in_letters(data)))
+    # count other genres occurrences for genre
+    counts_of_genres = calculate_other_genres_for_main_genres()
+    for genre in counts_of_genres:
+        print(genre)
+        sorted_counts = sorted(counts_of_genres[genre].items(), key=lambda x: x[1], reverse=True)
+        for item in sorted_counts:
+            print("\t" + item[0] + " " + str(item[1]))
 
-    print('Avg amount of words in summary: ' + str(calculate_avg_summary_length_in_words(data)))
-
+    # count the most common words in summaries
     calculated_words_occurrences = calculate_words(data)
     sorted_counts = sorted(calculated_words_occurrences.items(), key=lambda x: x[1], reverse=True)
     print("Top 15 words with most occurrences: ")
     for i in range(0, 15):
-        print("\t" + sorted_counts[i][0] + " " + str(sorted_counts[i][1]))
+        print("\t" + sorted_counts[i][0] + ": " + str(sorted_counts[i][1]))
 
+    # summary analysis
     sum_in_words = calculate_summaries_length_in_words(data)
     sorted_counts = sorted(sum_in_words.items(), key=lambda x: x[1], reverse=True)
     print('The most common summary length in words: ' + str(sorted_counts[0][0]))
@@ -31,6 +42,10 @@ def analyze_data(data: dict[int, dict[str, str]]):
     sorted_counts = sorted(sum_in_letters.items(), key=lambda x: x[0], reverse=True)
     print('The highest summary length in letters: ' + str(sorted_counts[0][0]))
     print('The lowest summary length in letters: ' + str(sorted_counts[len(sorted_counts) - 1][0]))
+
+    print('Avg amount of letters in summary: ' + str(calculate_avg_summary_length_in_letters(data)))
+
+    print('Avg amount of words in summary: ' + str(calculate_avg_summary_length_in_words(data)))
 
 
 # counts genres occurrences among books
@@ -127,3 +142,33 @@ def calculate_the_summaries_length_in_letters(temp_dict: dict[int, dict[str, str
 
     return counts_of_words
 
+
+def calculate_other_genres_for_main_genres() -> dict[str, dict[str, int]]:
+    raw_data = read_data()
+    data = []
+
+    for index in range(len(raw_data)):
+        try:
+            data.append(utf_16_encoding_to_8_fix(raw_data[index]))
+        except ValueError:
+            pass
+
+    counts_of_genres = {}
+
+    data = transform_data_to_dict(data)
+    data = remove_to_wide_or_to_specific_genres(data)
+
+    for book in data.values():
+        for genre in book['genres']:
+            if genre in counts_of_genres:
+                for innerGenre in book['genres']:
+                    if innerGenre != genre:
+                        if innerGenre in counts_of_genres[genre]:
+                            counts_of_genres[genre][innerGenre] += 1
+                        else:
+                            counts_of_genres[genre][innerGenre] = 1
+
+            else:
+                counts_of_genres[genre] = {}
+
+    return counts_of_genres
