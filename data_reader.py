@@ -2,6 +2,15 @@ import json
 from copy import deepcopy
 import pandas as pd
 import csv
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+
+#nltk.download('stopwords')
+#nltk.download('wordnet')
+#nltk.download('omw-1.4')
 
 
 # reads data from file, transforms and saves to csv file - merges all helper methods into one
@@ -70,6 +79,15 @@ def transform_data_to_dict(data: list[str]) -> dict[int, dict[str, list[str]]]:
                 line[6].count('&#') == 0 and line[6].count('http') == 0 and \
                 line[6].count('Plot outline description') == 0:
 
+            line[6] = line[6].lower()
+            line[6] = re.sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", line[6])
+            stop = stopwords.words('english')
+            line[6] = " ".join([word for word in line[6].split() if word not in stop])
+            stemmer = PorterStemmer()
+            line[6] = " ".join([stemmer.stem(word) for word in line[6].split()])
+            lemmatizer = WordNetLemmatizer()
+            line[6] = " ".join([lemmatizer.lemmatize(word) for word in line[6].split()])
+
             nested_dict = {'title': [line[2]],
                            'summary': [line[6]],
                            'genres': [genre for genre in json.loads(line[5]).values()]}
@@ -132,7 +150,8 @@ def remove_books_with_too_many_genres(temp_dict: dict[int, dict[str, list[str]]]
 
 
 # transforms temporary dictionary to target dictionary
-def transform_temporary_dictionary_to_target_dictionary(temp_dict: dict[int, dict[str, list[str]]]) -> dict[int, dict[str, str]]:
+def transform_temporary_dictionary_to_target_dictionary(temp_dict: dict[int, dict[str, list[str]]]) -> dict[
+    int, dict[str, str]]:
     final_dict = {}
 
     for key in temp_dict.keys():

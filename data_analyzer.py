@@ -26,6 +26,14 @@ def analyze_data(data: dict[int, dict[str, str]]):
     for i in range(0, 15):
         print("\t" + sorted_counts[i][0] + ": " + str(sorted_counts[i][1]))
 
+    # count the most common words in summaries for genres
+    calculated_words_occurrences = calculate_words_in_genres(data)
+    for genre in calculated_words_occurrences:
+        sorted_counts_for_genre = sorted(calculated_words_occurrences[genre].items(), key=lambda x: x[1], reverse=True)
+        print("Top 15 words with most occurrences for genre " + genre + ": ")
+        for i in range(0, 15):
+            print("\t" + sorted_counts_for_genre[i][0] + ": " + str(sorted_counts_for_genre[i][1]))
+
     # summary analysis
     sum_in_words = calculate_summaries_length_in_words(data)
     sorted_counts = sorted(sum_in_words.items(), key=lambda x: x[1], reverse=True)
@@ -87,7 +95,7 @@ def calculate_avg_summary_length_in_words(temp_dict: dict[int, dict[str, str]]) 
     return int(round(avg, 0))
 
 
-# calculate amount of words occurrences
+# calculate amount of words occurrences in summary
 def calculate_words(temp_dict: dict[int, dict[str, str]]) -> dict[str, int]:
     counts_of_words = {}
 
@@ -98,6 +106,26 @@ def calculate_words(temp_dict: dict[int, dict[str, str]]) -> dict[str, int]:
                 counts_of_words[word.lower()] += 1
             elif if_is_word(word.lower()):
                 counts_of_words[word.lower()] = 1
+
+    return counts_of_words
+
+
+# calculate amount of words occurrences for genres in summary
+def calculate_words_in_genres(temp_dict: dict[int, dict[str, str]]) -> dict[str, dict[str, int]]:
+    counts_of_words = {}
+
+    for book in temp_dict.values():
+        words = book['summary'].split()
+        for word in words:
+            if book['genre'] in counts_of_words:
+                if word.lower() in counts_of_words[book['genre']]:
+                    counts_of_words[book['genre']][word.lower()] += 1
+                    # counts_of_words[word.lower()] += 1
+                elif if_is_word(word.lower()):
+                    counts_of_words[book['genre']][word.lower()] = 1
+                    # counts_of_words[word.lower()] = 1
+            else:
+                counts_of_words[book['genre']] = {}
 
     return counts_of_words
 
