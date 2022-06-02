@@ -83,10 +83,12 @@ def transform_data_to_dict(data: list[str]) -> dict[int, dict[str, list[str]]]:
             line[6] = re.sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", line[6])
             stop = stopwords.words('english')
             line[6] = " ".join([word for word in line[6].split() if word not in stop])
-            stemmer = PorterStemmer()
-            line[6] = " ".join([stemmer.stem(word) for word in line[6].split()])
+
             lemmatizer = WordNetLemmatizer()
             line[6] = " ".join([lemmatizer.lemmatize(word) for word in line[6].split()])
+
+            stemmer = PorterStemmer()
+            line[6] = " ".join([stemmer.stem(word) for word in line[6].split()])
 
             nested_dict = {'title': [line[2]],
                            'summary': [line[6]],
