@@ -8,9 +8,9 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 
-#nltk.download('stopwords')
-#nltk.download('wordnet')
-#nltk.download('omw-1.4')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+# nltk.download('omw-1.4')
 
 
 # reads data from file, transforms and saves to csv file - merges all helper methods into one
@@ -152,8 +152,7 @@ def remove_books_with_too_many_genres(temp_dict: dict[int, dict[str, list[str]]]
 
 
 # transforms temporary dictionary to target dictionary
-def transform_temporary_dictionary_to_target_dictionary(temp_dict: dict[int, dict[str, list[str]]]) -> dict[
-    int, dict[str, str]]:
+def transform_temporary_dictionary_to_target_dictionary(temp_dict: dict[int, dict[str, list[str]]]) -> dict[int, dict[str, str]]:
     final_dict = {}
 
     for key in temp_dict.keys():

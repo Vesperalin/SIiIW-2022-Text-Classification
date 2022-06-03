@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
-from IPython.display import display
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import cross_validate, train_test_split, GridSearchCV
+from sklearn.model_selection import cross_validate, train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 
@@ -67,12 +65,13 @@ def naive_bayes_one_time():
 
 
 # cross validation naive bayes train and test
-def cross_validation_naive_bayes():
+def cross_validation_naive_bayes(verbose: bool, max_df: float, min_df: float, max_f: float, ngram_range: (int, int),
+                                 alpha: float) -> float:
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
-    count_vectorizer = CountVectorizer(max_df=0.5, max_features=5000, min_df=0.01, ngram_range=(1, 2))
+    count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
     tfidf_transformer = TfidfTransformer(use_idf=True)
-    naive_bayes_classificator = MultinomialNB(alpha=0.1)
+    naive_bayes_classificator = MultinomialNB(alpha=alpha)
 
     x_train_counts = count_vectorizer.fit_transform(df['summary'])
     x_train_tfidf = tfidf_transformer.fit_transform(x_train_counts)
@@ -80,22 +79,25 @@ def cross_validation_naive_bayes():
     # cross validates for the model - 10 times
     cv_results = cross_validate(naive_bayes_classificator, x_train_tfidf, df['genre'], cv=10)
 
-    print('Fit times')
-    for elem in cv_results['fit_time']:
-        print('\t' + str(round(elem, 5)) + ' s')
-    print()
+    if verbose:
+        print('Fit times')
+        for elem in cv_results['fit_time']:
+            print('\t' + str(round(elem, 5)) + ' s')
+        print()
 
-    print('Score times')
-    for elem in cv_results['score_time']:
-        print('\t' + str(round(elem, 5)) + ' s')
-    print()
+        print('Score times')
+        for elem in cv_results['score_time']:
+            print('\t' + str(round(elem, 5)) + ' s')
+        print()
 
-    print('Test score')
-    for elem in cv_results['test_score']:
-        print('\t' + str(round(elem * 100, 2)) + ' %')
-    print()
+        print('Test score')
+        for elem in cv_results['test_score']:
+            print('\t' + str(round(elem * 100, 2)) + ' %')
+        print()
 
-    print(np.mean(cv_results['test_score']))
+        print(np.mean(cv_results['test_score']))
+
+    return float(np.mean(cv_results['test_score']))
 
 
 # 1 support vector machine training and test
@@ -107,6 +109,7 @@ def svm_one_time():
 
     count_vectorizer = CountVectorizer(max_df=0.5, max_features=5000, min_df=0.01, ngram_range=(1, 2))
     tfidf_transformer = TfidfTransformer(use_idf=True)
+
     # loss - specifies the loss function (funckja obliczjąca odległość między obecnym i oczekiwamyn wyjściem)
     # C - regularisation parameter (zmniejsza blad przez odpowiednie dopasowanie funkcji i
     #   zapobieganie zjawisku overfitting)
@@ -134,12 +137,13 @@ def svm_one_time():
 
 
 # cross validation naive bayes train and test
-def cross_validation_svm():
+def cross_validation_svm(verbose: bool, max_df: float, min_df: float, max_f: float, ngram_range: (int, int), c: float,
+                         loss: str) -> float:
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
-    count_vectorizer = CountVectorizer(max_df=0.5, max_features=5000, min_df=0.01, ngram_range=(1, 2))
+    count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
     tfidf_transformer = TfidfTransformer(use_idf=True)
-    svm_classificator = LinearSVC(C=1, loss='squared_hinge', class_weight='balanced', dual=False)
+    svm_classificator = LinearSVC(C=c, loss=loss, class_weight='balanced')
 
     x_train_counts = count_vectorizer.fit_transform(df['summary'])
     x_train_tfidf = tfidf_transformer.fit_transform(x_train_counts)
@@ -147,84 +151,85 @@ def cross_validation_svm():
     # cross validates for the model - 10 times
     cv_results = cross_validate(svm_classificator, x_train_tfidf, df['genre'], cv=10)
 
-    print('Fit times')
-    for elem in cv_results['fit_time']:
-        print('\t' + str(round(elem, 5)) + ' s')
-    print()
+    if verbose:
+        print('Fit times')
+        for elem in cv_results['fit_time']:
+            print('\t' + str(round(elem, 5)) + ' s')
+        print()
 
-    print('Score times')
-    for elem in cv_results['score_time']:
-        print('\t' + str(round(elem, 5)) + ' s')
-    print()
+        print('Score times')
+        for elem in cv_results['score_time']:
+            print('\t' + str(round(elem, 5)) + ' s')
+        print()
 
-    print('Test score')
-    for elem in cv_results['test_score']:
-        print('\t' + str(round(elem * 100, 2)) + ' %')
-    print()
+        print('Test score')
+        for elem in cv_results['test_score']:
+            print('\t' + str(round(elem * 100, 2)) + ' %')
+        print()
 
-    print(np.mean(cv_results['test_score']))
+        print(np.mean(cv_results['test_score']))
+
+    return float(np.mean(cv_results['test_score']))
 
 
 def bayes_tuning():
-    df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
+    max_df_params = [0.5, 0.7, 0.9]
+    min_df_params = [0.001, 0.01, 0.1]
+    max_f_params = [1000, 3000, 5000]
+    ngram_range_params = [(1, 1), (1, 2), (1, 3)]
+    alpha_params = [0.001, 0.01, 0.1]
+    best_mean = 0.0
+    best_params = {'max_df': 0.0, 'min_df': 0.0, 'max_f': 0.0, 'ngram_range': (0, 0), 'alpha': 0.0}
 
-    text_classificator_naive_bayes_pipeline = Pipeline([
-        ('vect', CountVectorizer()),
-        ('tfidf', TfidfTransformer()),
-        ('clf', MultinomialNB()),
-    ])
+    for max_df in max_df_params:
+        for min_df in min_df_params:
+            for max_f in max_f_params:
+                for ngram_range in ngram_range_params:
+                    for alpha in alpha_params:
+                        new_mean = cross_validation_naive_bayes(False, max_df, min_df, max_f, ngram_range, alpha)
+                        print(max_df, min_df, max_f, ngram_range, alpha)
+                        if new_mean > best_mean:
+                            best_mean = new_mean
+                            best_params = {'max_df': max_df, 'min_df': min_df,
+                                           'max_f': max_f, 'ngram_range': ngram_range,
+                                           'alpha': alpha}
 
-    parameters = {
-        'vect__ngram_range': [(1, 1), (1, 2), (1, 3)],
-        'vect__max_features': [1000, 3000, 5000],
-        'vect__max_df': [0.5, 0.7, 0.8],
-        'vect__min_df': [0.001, 0.01, 0.1],
-        'tfidf__use_idf': [True],
-        'clf__alpha': [0.001, 0.01, 0.1],
-    }
-
-    gs_clf = GridSearchCV(text_classificator_naive_bayes_pipeline, parameters, cv=10, n_jobs=-1)
-    gs_clf = gs_clf.fit(df['summary'], df['genre'])
-
-    print('Best score: ' + str(gs_clf.best_score_))
-    for param_name in sorted(parameters.keys()):
-        print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-
-    print()
-
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 2000)
-    pd.set_option('display.colheader_justify', 'center')
-    pd.set_option('display.precision', 5)
-
-    display(pd.DataFrame(gs_clf.cv_results_))
+    print('-------------------------------------- Tuning multinomial naive bayes')
+    print("Best mean: " + str(round(best_mean, 3)))
+    print("Parameters for best mean: ")
+    for key in best_params:
+        print('\t' + key + ': ' + str(best_params[key]))
 
 
 def svm_tuning():
-    df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
+    max_df_params = [0.5, 0.7, 0.9]
+    min_df_params = [0.001, 0.01, 0.1]
+    max_f_params = [1000, 3000, 5000]
+    ngram_range_params = [(1, 1), (1, 2), (1, 3)]
+    c_params = [0.1, 1, 2]
+    loss_params = ['hinge', 'squared_hinge']
+    best_mean = 0.0
+    best_params = {'max_df': 0.0, 'min_df': 0.0, 'max_f': 0, 'ngram_range': (0, 0), 'c': 0, 'loss': 'hinge'}
+    for max_df in max_df_params:
+        for min_df in min_df_params:
+            for max_f in max_f_params:
+                for ngram_range in ngram_range_params:
+                    for c in c_params:
+                        for loss in loss_params:
+                            new_mean = cross_validation_svm(False, max_df, min_df, max_f, ngram_range, c, loss)
 
-    text_classificator_svm_pipeline = Pipeline([
-        ('vect', CountVectorizer()),
-        ('tfidf', TfidfTransformer()),
-        ('clf', LinearSVC()),
-    ])
-# ('clf', LinearSVC(C=1, loss='squared_hinge', class_weight='balanced', dual=False)),
-    parameters = {
-        'vect__ngram_range': [(1, 1), (1, 2)],
-        'vect__max_features': [3000, 5000],
-        'vect__max_df': [0.7, 0.8],
-        'vect__min_df': [0.1, 0.01],
-        'tfidf__use_idf': [True],
-        'clf__C':  [0.1, 1, 10, 100],
-        'clf__loss': ['hinge', 'squared_hinge'],
-        'clf__dual': [False],
-        'clf__class_weight': ['balanced']
-    }
+                            if new_mean > best_mean:
+                                best_mean = new_mean
+                                best_params['max_df'] = max_df
+                                best_params['min_df'] = min_df
+                                best_params['max_f'] = max_f
+                                best_params['ngram_range'] = ngram_range
+                                best_params['c'] = c
+                                best_params['loss'] = loss
 
-    gs_clf = GridSearchCV(text_classificator_svm_pipeline, parameters, cv=10, n_jobs=-1)
-    gs_clf = gs_clf.fit(df['summary'], df['genre'])
-
-    print('Best score: ' + str(gs_clf.best_score_))
-    for param_name in sorted(parameters.keys()):
-        print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    print('-------------------------------------- Tuning svm')
+    print("Best mean: " + str(round(best_mean, 3)))
+    print("Parameters for best mean: ")
+    for key in best_params:
+        print("\t" + key + ": " + str(best_params[key]))
+    print()
