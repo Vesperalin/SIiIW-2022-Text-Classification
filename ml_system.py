@@ -1,15 +1,12 @@
 import pandas as pd
 import numpy as np
+from IPython.display import display
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import cross_validate, train_test_split
+from sklearn.model_selection import cross_validate, train_test_split, GridSearchCV
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
-
-
-# invoke all naive bayes methods
-def naive_bayes():
-    pass
 
 
 # 1 naive bayes training and test
@@ -167,3 +164,67 @@ def cross_validation_svm():
 
     print(np.mean(cv_results['test_score']))
 
+
+def bayes_tuning():
+    df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
+
+    text_classificator_naive_bayes_pipeline = Pipeline([
+        ('vect', CountVectorizer()),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultinomialNB()),
+    ])
+
+    parameters = {
+        'vect__ngram_range': [(1, 1), (1, 2), (1, 3)],
+        'vect__max_features': [1000, 3000, 5000],
+        'vect__max_df': [0.5, 0.7, 0.8],
+        'vect__min_df': [0.001, 0.01, 0.1],
+        'tfidf__use_idf': [True],
+        'clf__alpha': [0.001, 0.01, 0.1],
+    }
+
+    gs_clf = GridSearchCV(text_classificator_naive_bayes_pipeline, parameters, cv=10, n_jobs=-1)
+    gs_clf = gs_clf.fit(df['summary'], df['genre'])
+
+    print('Best score: ' + str(gs_clf.best_score_))
+    for param_name in sorted(parameters.keys()):
+        print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+    print()
+
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 2000)
+    pd.set_option('display.colheader_justify', 'center')
+    pd.set_option('display.precision', 5)
+
+    display(pd.DataFrame(gs_clf.cv_results_))
+
+
+def svm_tuning():
+    df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
+
+    text_classificator_svm_pipeline = Pipeline([
+        ('vect', CountVectorizer()),
+        ('tfidf', TfidfTransformer()),
+        ('clf', LinearSVC()),
+    ])
+# ('clf', LinearSVC(C=1, loss='squared_hinge', class_weight='balanced', dual=False)),
+    parameters = {
+        'vect__ngram_range': [(1, 1), (1, 2)],
+        'vect__max_features': [3000, 5000],
+        'vect__max_df': [0.7, 0.8],
+        'vect__min_df': [0.1, 0.01],
+        'tfidf__use_idf': [True],
+        'clf__C':  [0.1, 1, 10, 100],
+        'clf__loss': ['hinge', 'squared_hinge'],
+        'clf__dual': [False],
+        'clf__class_weight': ['balanced']
+    }
+
+    gs_clf = GridSearchCV(text_classificator_svm_pipeline, parameters, cv=10, n_jobs=-1)
+    gs_clf = gs_clf.fit(df['summary'], df['genre'])
+
+    print('Best score: ' + str(gs_clf.best_score_))
+    for param_name in sorted(parameters.keys()):
+        print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
