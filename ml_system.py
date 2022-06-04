@@ -8,7 +8,7 @@ from sklearn.svm import LinearSVC
 
 
 # 1 naive bayes training and test
-def naive_bayes_one_time():
+def naive_bayes_one_time(max_df: float, min_df: float, max_f: float, ngram_range: (int, int), alpha: float):
     # read data from csv
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
@@ -25,14 +25,14 @@ def naive_bayes_one_time():
     #   lower than the given threshold
     # ngram_range - The lower and upper boundary of the range of n-values for different word
     #   n-grams or char n-grams to be extracted
-    count_vectorizer = CountVectorizer(max_df=0.5, max_features=5000, min_df=0.01, ngram_range=(1, 2))
+    count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
 
     # transform a count matrix to a normalized tf or tf-idf representation
     # tf - frequency of word in document
     # tf-idf - frequency of word in document compared to document size
     tfidf_transformer = TfidfTransformer(use_idf=True)
     # alpha - parametr wygładzania krzywej
-    naive_bayes_classificator = MultinomialNB(alpha=0.1)
+    naive_bayes_classificator = MultinomialNB(alpha=alpha)
 
     x_train_counts = count_vectorizer.fit_transform(x_train_summaries)
     x_train_tfidf = tfidf_transformer.fit_transform(x_train_counts)
@@ -101,13 +101,13 @@ def cross_validation_naive_bayes(verbose: bool, max_df: float, min_df: float, ma
 
 
 # 1 support vector machine training and test
-def svm_one_time():
+def svm_one_time(max_df: float, min_df: float, max_f: float, ngram_range: (int, int), c: float, loss: str):
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
     x_train_summaries, x_test_summaries, y_train_genres, y_test_genres = \
         train_test_split(df['summary'], df['genre'], test_size=0.25)
 
-    count_vectorizer = CountVectorizer(max_df=0.5, max_features=5000, min_df=0.01, ngram_range=(1, 2))
+    count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
     tfidf_transformer = TfidfTransformer(use_idf=True)
 
     # loss - specifies the loss function (funckja obliczjąca odległość między obecnym i oczekiwamyn wyjściem)
@@ -115,7 +115,7 @@ def svm_one_time():
     #   zapobieganie zjawisku overfitting)
     # dual - False jeżeli wielkośc zbioru > liczby cech
     # class_weight - dostraja wagę klas (etykiet) w zależności od częstości występowania w zbiorze treningowym
-    svm_classifier = LinearSVC(C=1, loss='squared_hinge', class_weight='balanced', dual=False)
+    svm_classifier = LinearSVC(C=c, loss=loss, class_weight='balanced')
 
     x_train_counts = count_vectorizer.fit_transform(x_train_summaries)
     x_train_tfidf = tfidf_transformer.fit_transform(x_train_counts)
@@ -177,7 +177,7 @@ def bayes_tuning():
     min_df_params = [0.001, 0.01, 0.1]
     max_f_params = [1000, 3000, 5000]
     ngram_range_params = [(1, 1), (1, 2), (1, 3)]
-    alpha_params = [0.001, 0.01, 0.1]
+    alpha_params = [0.01, 0.1, 1, 2]
     best_mean = 0.0
     best_params = {'max_df': 0.0, 'min_df': 0.0, 'max_f': 0.0, 'ngram_range': (0, 0), 'alpha': 0.0}
 
