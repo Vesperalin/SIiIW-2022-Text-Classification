@@ -1,3 +1,4 @@
+import numpy
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -66,11 +67,11 @@ def naive_bayes_one_time(max_df: float, min_df: float, max_f: float, ngram_range
 
 # cross validation naive bayes train and test
 def cross_validation_naive_bayes(verbose: bool, max_df: float, min_df: float, max_f: float, ngram_range: (int, int),
-                                 alpha: float) -> float:
+                                 alpha: float, use_idf=True) -> (float, float, float):
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
     count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
-    tfidf_transformer = TfidfTransformer(use_idf=True)
+    tfidf_transformer = TfidfTransformer(use_idf=use_idf)
     naive_bayes_classificator = MultinomialNB(alpha=alpha)
 
     x_train_counts = count_vectorizer.fit_transform(df['summary'])
@@ -78,6 +79,9 @@ def cross_validation_naive_bayes(verbose: bool, max_df: float, min_df: float, ma
 
     # cross validates for the model - 10 times
     cv_results = cross_validate(naive_bayes_classificator, x_train_tfidf, df['genre'], cv=10)
+
+    fit_times = float(np.mean(cv_results['fit_time']))
+    score_times = float(np.mean(cv_results['score_time']))
 
     if verbose:
         print('Fit times')
@@ -97,7 +101,7 @@ def cross_validation_naive_bayes(verbose: bool, max_df: float, min_df: float, ma
 
         print(np.mean(cv_results['test_score']))
 
-    return float(np.mean(cv_results['test_score']))
+    return float(np.mean(cv_results['test_score'])), fit_times, score_times
 
 
 # 1 support vector machine training and test
@@ -138,11 +142,11 @@ def svm_one_time(max_df: float, min_df: float, max_f: float, ngram_range: (int, 
 
 # cross validation naive bayes train and test
 def cross_validation_svm(verbose: bool, max_df: float, min_df: float, max_f: float, ngram_range: (int, int), c: float,
-                         loss: str) -> float:
+                         loss: str, use_idf=True) -> (float, float, float):
     df = pd.read_csv('cleaned_data.csv', names=['wikipedia_id', 'genre', 'summary'])
 
     count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_f, min_df=min_df, ngram_range=ngram_range)
-    tfidf_transformer = TfidfTransformer(use_idf=True)
+    tfidf_transformer = TfidfTransformer(use_idf=use_idf)
     svm_classificator = LinearSVC(C=c, loss=loss, class_weight='balanced')
 
     x_train_counts = count_vectorizer.fit_transform(df['summary'])
@@ -150,6 +154,9 @@ def cross_validation_svm(verbose: bool, max_df: float, min_df: float, max_f: flo
 
     # cross validates for the model - 10 times
     cv_results = cross_validate(svm_classificator, x_train_tfidf, df['genre'], cv=10)
+
+    fit_times = float(np.mean(cv_results['fit_time']))
+    score_times = float(np.mean(cv_results['score_time']))
 
     if verbose:
         print('Fit times')
@@ -169,7 +176,7 @@ def cross_validation_svm(verbose: bool, max_df: float, min_df: float, max_f: flo
 
         print(np.mean(cv_results['test_score']))
 
-    return float(np.mean(cv_results['test_score']))
+    return float(np.mean(cv_results['test_score'])), fit_times, score_times
 
 
 def bayes_tuning():
