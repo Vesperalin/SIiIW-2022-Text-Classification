@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # c_test_for_svm()
     # loss_test_for_svm()
     # test_bayes_features()
-    # test_svm_features()
+    test_svm_features()
     # feature_max_f_test_for_bayes()
     # feature_max_f_test_for_svm()
     # feature_ngram_range_test_for_bayes()

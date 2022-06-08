@@ -42,7 +42,7 @@ def test_bayes_features():
 
 
 def feature_max_df_test_for_bayes():
-    max_df_params = [0.5, 0.7, 0.9]
+    max_df_params = [0.1, 0.5, 0.9]
     for max_df in max_df_params:
         print("-------------------------------------------------------------------------- " + str(max_df))
         result = cross_validation_naive_bayes(False, max_df, 0.001, 5000, (1, 2), 0.1)
@@ -92,7 +92,7 @@ def test_svm_features():
 
 
 def feature_max_df_test_for_svm():
-    max_df_params = [0.5, 0.7, 0.9]
+    max_df_params = [0.1, 0.5, 0.9]
     for max_df in max_df_params:
         print("-------------------------------------------------------------------------- " + str(max_df))
         result = cross_validation_svm(False, max_df, 0.001, 5000, (1, 1), 0.1, 'squared_hinge')
