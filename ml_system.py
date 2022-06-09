@@ -1,4 +1,3 @@
-import numpy
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -224,7 +223,7 @@ def svm_tuning():
                     for c in c_params:
                         for loss in loss_params:
                             new_mean = cross_validation_svm(False, max_df, min_df, max_f, ngram_range, c, loss)
-
+                            print(max_df, min_df, max_f, ngram_range, alpha)
                             if new_mean > best_mean:
                                 best_mean = new_mean
                                 best_params['max_df'] = max_df

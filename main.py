@@ -4,7 +4,8 @@ from ml_system import bayes_tuning, svm_tuning, cross_validation_naive_bayes, cr
 from experiments import alpha_test_for_bayes, c_test_for_svm, loss_test_for_svm, test_bayes_features, \
     test_svm_features, feature_max_f_test_for_bayes, feature_max_f_test_for_svm, feature_ngram_range_test_for_bayes, \
     feature_ngram_range_test_for_svm, feature_min_df_test_for_bayes, feature_min_df_test_for_svm, \
-    feature_max_df_test_for_bayes, feature_max_df_test_for_svm
+    feature_max_df_test_for_bayes, feature_max_df_test_for_svm, test_parameters_for_bayes_for_different_size_of_data_set, \
+    test_parameters_for_linear_svc_for_different_size_of_data_set
 
 if __name__ == '__main__':
     # process_data_and_write_to_csv()
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     # c_test_for_svm()
     # loss_test_for_svm()
     # test_bayes_features()
-    test_svm_features()
+    # test_svm_features()
     # feature_max_f_test_for_bayes()
     # feature_max_f_test_for_svm()
     # feature_ngram_range_test_for_bayes()
@@ -29,4 +30,6 @@ if __name__ == '__main__':
     # feature_min_df_test_for_svm()
     # feature_max_df_test_for_bayes()
     # feature_max_df_test_for_svm()
+    # test_parameters_for_bayes_for_different_size_of_data_set()
+    test_parameters_for_linear_svc_for_different_size_of_data_set()
     pass
